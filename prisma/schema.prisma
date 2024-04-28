@@ -1,0 +1,104 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+enum Role {
+  ADMIN
+  CUSTOMER
+}
+
+enum Category {
+  SNACK
+  MAIN_DISHES
+  DESSERT
+  DRINKS
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String    @id @default(uuid())
+  name      String
+  email     String    @unique
+  password  String
+  role      Role      @default(CUSTOMER)
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
+  addresses Address[]
+
+  @@map("users")
+}
+
+model Address {
+  id           String    @id @default(uuid())
+  street       String
+  houseNumber  String    @map("house_number")
+  neighborhood String
+  complement   String?
+  city         String
+  state        String
+  zipCode      String    @map("zip_code")
+  userId       String?   @map("user_id")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime? @updatedAt @map("updated_at")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("addresses")
+}
+
+model Dish {
+  id          String   @id @default(uuid())
+  name        String
+  categoty    Category
+  price       Int
+  description String?
+
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime?        @updatedAt @map("updated_at")
+  dishIngredients DishIngredient[]
+  Attachment      Attachment?
+
+  @@map("dishes")
+}
+
+model Ingredient {
+  id              String           @id @default(uuid())
+  name            String
+  dishIngredients DishIngredient[]
+
+  @@map("ingredients")
+}
+
+model DishIngredient {
+  dishId       String     @map("dish_id")
+  ingredientId String     @map("ingredient_id")
+  dish         Dish       @relation(fields: [dishId], references: [id])
+  ingredient   Ingredient @relation(fields: [ingredientId], references: [id])
+
+  @@id([dishId, ingredientId])
+  @@map("dish_ingredients")
+}
+
+model Attachment {
+  id     String @id @default(uuid())
+  title  String
+  url    String
+  dishId String @unique @map("dish_id")
+
+  dish Dish @relation(fields: [dishId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
+
+  @@map("attachments")
+}
