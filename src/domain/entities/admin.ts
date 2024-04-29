@@ -1,12 +1,13 @@
 import { Entity } from 'src/core/entity'
 import { Optional } from 'src/core/types/optional'
+import { Email } from './value-objects/email'
 
 interface AdminProps {
   name: string
-  email: string
+  email: Email
   password: string
   createdAt: Date
-  updatedAt: Date
+  updatedAt?: Date
 }
 
 export class Admin extends Entity<AdminProps> {
@@ -20,11 +21,11 @@ export class Admin extends Entity<AdminProps> {
   }
 
   get email() {
-    return this.props.email
+    return this.props.email.getAddress()
   }
 
   set email(email: string) {
-    this.props.email = email
+    this.props.email = new Email(email)
     this.touch()
   }
 
